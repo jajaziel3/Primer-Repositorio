@@ -1,0 +1,78 @@
+package com.example.mobileapp.mobile
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.mobileapp.common.HealthMetrics
+import java.text.SimpleDateFormat
+import java.util.*
+
+@Composable
+fun CompanionDashboard(history: List<HealthMetrics>) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        Text(
+            text = "Companion Dashboard",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(text = "Resumen de Hoy", fontWeight = FontWeight.Bold)
+                val latest = history.lastOrNull() ?: HealthMetrics()
+                Text(text = "Total Pasos: ${latest.steps}")
+                Text(text = "Distancia: %.2f Km".format(latest.distanceKm))
+                Text(text = "Calorías: %.1f kcal".format(latest.calories))
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(text = "Historial Reciente", fontWeight = FontWeight.SemiBold)
+        
+        LazyColumn(modifier = Modifier.fillWeight(1f)) {
+            items(history.reversed()) { metric ->
+                MetricItem(metric)
+            }
+        }
+    }
+}
+
+@Composable
+fun MetricItem(metric: HealthMetrics) {
+    val sdf = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+    val time = sdf.format(Date(metric.timestamp))
+    
+    ListItem(
+        headlineContent = { Text("Frecuencia: ${metric.heartRate} BPM") },
+        supportingContent = { Text("Pasos: ${metric.steps} | $time") },
+        trailingContent = {
+            if (metric.heartRate > 100) {
+                Icon(
+                    imageVector = androidx.compose.material.icons.Icons.Default.Warning,
+                    contentDescription = "Alerta",
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
+        }
+    )
+}
+
+// Extension to allow fillWeight in Column
+@Composable
+fun Modifier.fillWeight(weight: Float): Modifier = this.then(Modifier.weight(weight))
